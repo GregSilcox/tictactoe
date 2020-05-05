@@ -1,5 +1,4 @@
-require './game/game'
-require './game/game_objects/player'
+require './game/player'
 
 module GameObject
   RSpec.describe Player do
