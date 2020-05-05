@@ -1,23 +1,29 @@
 class Command
-  attr_reader :command, :error
+  attr_reader :command, :error, :row, :column, :valid
+  VALID = %w(11 12 13 21 22 23 31 32 33).freeze
 
-  def initialize command, game
+  def initialize command
     @command = command
-    @game = game
+    @row = @column = nil
     @error = nil
+
+    _parse if _valid?
   end
 
-  def valid?
-    if @command.nil? || @command.empty?
-      @error = "command was blank"
-      return false
-    end
+  private
 
-    unless @game.board.available_tiles.include? @command
-      @error = "tile not available (#{ @command })"
-      return false
-    end
+  def _valid?
+    @error = "command not in set" unless
+      VALID.include? command
 
-    true
+    @error = "command was blank" if 
+      command.nil? || command.empty?
+
+    @valid = error.nil?
+  end
+
+  def _parse
+    @row = command.split('')[0].to_i - 1
+    @column = command.split('')[1].to_i - 1
   end
 end

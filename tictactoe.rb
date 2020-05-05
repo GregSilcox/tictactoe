@@ -63,8 +63,10 @@ class TicTacToe
     loop do
       puts "Enter a tile number"
       entry = $stdin.gets.strip
-      command = Command.new entry, self
-      break if command.valid?
+      command = Command.new entry, board
+      break if
+        command.valid? && 
+        board.available_tiles.include?(@command)
       puts command.error
     end
 
