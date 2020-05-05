@@ -1,4 +1,6 @@
 class Board
+  attr_reader :grid
+
   class << self
     def setup game
       game.board = Board.new
@@ -49,8 +51,14 @@ class Board
     @grid.flatten.select{ |tile| tile.match /\d\d/ }
   end
 
+  def update_grid commands
+    commands.each do |command| 
+      grid[command.row][command.column] = 'XX'
+    end
+  end
+
   def display
-    @grid.each do |row|
+    grid.each do |row|
       puts row.join ' | '
       puts ''
     end
