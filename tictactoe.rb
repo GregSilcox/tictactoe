@@ -6,7 +6,7 @@ require './game/command'
 
 class TicTacToe
   attr_reader :location
-  attr_accessor :memory, :player, :games, :opponents, :board #, :command
+  attr_accessor :memory, :player, :games, :opponents, :board
 
   def initialize location=:remote
     @location = location
@@ -14,9 +14,7 @@ class TicTacToe
     @player = Player.new
     @games = []
     @opponents = []
-
-    # @board = Board.new
-    # @command = Command.new
+    @board = nil
   end
 
   def setup
@@ -57,16 +55,16 @@ class TicTacToe
     end
   end
 
-  def get_command
+  def get_command board
     command = ''
 
     loop do
       puts "Enter a tile number"
       entry = $stdin.gets.strip
-      command = Command.new entry, board
+      command = Command.new entry
       break if
-        command.valid? && 
-        board.available_tiles.include?(@command)
+        command.valid && 
+        board.available_tiles.include?(command.command)
       puts command.error
     end
 
@@ -82,14 +80,30 @@ class TicTacToe
     # Update game state to memory
   end
 
-  def games_menu
-    puts 'What would you like to do?'
-    games.each do |game|
+  def list_games all_games, games_to_list
+    games_to_list.each do |game|
       opponent_id = game.player_ids - [player.id]
       opponent = opponents.find { |j| j.id == opponent_id.first }
-      index = games.index game
+      index = all_games.index game
       puts "  #{ index } - opponent: #{ opponent.name }, game id: #{ game.id }"
     end
+  end
+
+  def games_menu
+    puts 'What would you like to do?'
+
+    players_games = games.select do |game|
+      offset = player.id == game.player_ids.first ? 0 : 1
+      (game.commands.size + offset) % 2 == 0
+    end
+
+    opponents_games = games - players_games
+
+    puts "Opponent's turn"
+    list_games games, opponents_games
+
+    puts "Your turn"
+    list_games games, players_games
 
     puts '  N - New game'
     puts '  E - Exit'
@@ -115,8 +129,11 @@ class TicTacToe
 
   def play_game game
     puts "play_game: #{ game.id }"
-    Board.setup self
-    game.commands << get_command.command
+    cmds = game.commands.map { |c| Command.new c }
+    offset = player.id == game.player_ids.first ? 0 : 1
+    board = Board.setup cmds, offset
+    command = get_command board
+    game.commands << command.command
     puts "show game: "
     game.show
     game.save

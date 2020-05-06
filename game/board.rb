@@ -2,9 +2,11 @@ class Board
   attr_reader :grid
 
   class << self
-    def setup game
-      game.board = Board.new
-      game.board.display
+    def setup commands, offset
+      board = Board.new
+      board.update_grid commands, offset
+      board.display
+      board
     end
 
     def update game
@@ -51,9 +53,13 @@ class Board
     @grid.flatten.select{ |tile| tile.match /\d\d/ }
   end
 
-  def update_grid commands
-    commands.each do |command| 
-      grid[command.row][command.column] = 'XX'
+  # The commands are in order, and the offset determines 
+  # who started first
+  def update_grid commands, offset=0
+    commands.each_with_index do |command, index|
+      i = (index + offset) % 2
+      filler = i == 0 ? 'XX' : 'OO'
+      grid[command.row][command.column] = filler
     end
   end
 
