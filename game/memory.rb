@@ -4,27 +4,8 @@ require 'json'
 class Memory
   attr_reader :redis
 
-  def initialize
-  end
-
-  # redis-cli
-    # -h redis-14070.c60.us-west-1-2.ec2.cloud.redislabs.com
-    # -p 14070
-    # -a S1xO4exkA2aexFRXZh3wgUVKFD5QEAU9
-  def remote
-    @host = 'redis-14070.c60.us-west-1-2.ec2.cloud.redislabs.com'
-    @port = 14070
-    @password = 'S1xO4exkA2aexFRXZh3wgUVKFD5QEAU9'
-  end
-
-  def local
-    @host = 'localhost'
-    @port = 6379
-    @password = nil
-  end
-
-  def connect
-    @redis = Redis.new host: @host, port: @port, password: @password
+  def initialize location
+    location == :local ? local : remote
   end
 
   def get key
@@ -46,5 +27,27 @@ class Memory
       string = "#{ type }:#{ id }"
       return id unless redis.get(string)
     end
+  end
+  
+  def connect
+    @redis = Redis.new host: @host, port: @port, password: @password
+  end
+
+private
+  
+  # redis-cli
+  #   -h redis-14070.c60.us-west-1-2.ec2.cloud.redislabs.com
+  #   -p 14070
+  #   -a S1xO4exkA2aexFRXZh3wgUVKFD5QEAU9
+  def remote
+    @host = 'redis-14070.c60.us-west-1-2.ec2.cloud.redislabs.com'
+    @port = 14070
+    @password = 'S1xO4exkA2aexFRXZh3wgUVKFD5QEAU9'
+  end
+
+  def local
+    @host = 'localhost'
+    @port = 6379
+    @password = nil
   end
 end

@@ -3,9 +3,9 @@ require 'json'
 class GameMemory
   attr_reader :player, :game, :memory
 
-  def initialize game
+  def initialize game, memory
     @game = game
-    @memory = game.tictactoe.memory
+    @memory = memory
   end
 
   def save

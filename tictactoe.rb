@@ -5,53 +5,30 @@ require './game/board'
 require './game/command'
 
 class TicTacToe
-  attr_reader :location
   attr_accessor :memory, :player, :games, :opponents, :board
 
   def initialize location=:remote
-    @location = location
-    @memory = Memory.new
-    @player = Player.new
+    @memory = Memory.new location
+    @player = Player.new memory
     @games = []
     @opponents = []
     @board = nil
   end
 
   def setup
-    puts "Setting up memory"
-    memory.send location
     memory.connect
+    player.setup ENV['SG_Username'], ENV['SG_Password']
+    @games = player.get_games
 
-    puts "Setting up the player"
-    # player.login_menu
-    player.game = self
-    player.setup
-    player.name = 'Greg'
-    player.password = 'Mario4'
-    player.record.authenticate player.name, player.password
-    player.record.load player.id
-    player.show
-
-
-    puts "Setting up the games"
-    Game.mget(player.game_ids, self).each do |game_data|
-      g = Game.new self
-      g.parse game_data
-      @games << g
-      g.show
-    end
-
-    puts "Setting up the opponents"
     opponent_ids = games.map do |game|
       opponent_id = game.player_ids - [player.id]
       opponent_id.first
     end.uniq
 
-    Player.mget(opponent_ids, self).map do |data|
-      opponent = Player.new
+    Player.mget(opponent_ids, memory).map do |data|
+      opponent = Player.new memory
       opponent.parse data
       @opponents << opponent
-      opponent.show
     end
   end
 
@@ -72,14 +49,6 @@ class TicTacToe
     command # game.command = command.command
   end
 
-  def update
-    games_menu
-    # Get command
-    # Update the board
-    # Score the board
-    # Update game state to memory
-  end
-
   def list_games all_games, games_to_list
     games_to_list.each do |game|
       opponent_id = game.player_ids - [player.id]
@@ -92,12 +61,11 @@ class TicTacToe
   def games_menu
     puts 'What would you like to do?'
 
-    players_games = games.select do |game|
-      offset = player.id == game.player_ids.first ? 0 : 1
-      (game.commands.size + offset) % 2 == 0
-    end
-
-    opponents_games = games - players_games
+    # This is wrong. Not all completed games have nine commands.
+    completed_games = games.select &:completed?
+    playable_games = games - completed_games
+    players_games = playable_games.select { |game| game.playable? player.id }
+    opponents_games = playable_games - players_games
 
     puts "Opponent's turn"
     list_games games, opponents_games
@@ -128,18 +96,27 @@ class TicTacToe
   end
 
   def play_game game
+    # Setup the board
     puts "play_game: #{ game.id }"
     cmds = game.commands.map { |c| Command.new c }
-    offset = player.id == game.player_ids.first ? 0 : 1
+    offset = game.offset player.id
     board = Board.setup cmds, offset
-    command = get_command board
-    game.commands << command.command
+
+    # Get the command
+    game.commands << get_command(board).command
+
+    # Update the board
     puts "show game: "
     game.show
+
+    # Score the board
+    board.score player.name, game.mark
+
+    # Save the game
     game.save
   end
 end
 
 ttt = TicTacToe.new
 ttt.setup
-loop { ttt.update }
+loop { ttt.games_menu }

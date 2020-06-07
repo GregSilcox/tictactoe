@@ -1,6 +1,8 @@
 class Board
   attr_reader :grid
 
+  GRID = [%w(11 12 13), %w(21 22 23), %w(31 32 33)].freeze
+  
   class << self
     def setup commands, offset
       board = Board.new
@@ -17,7 +19,7 @@ class Board
   end
 
   def initialize
-    @grid = [%w(11 12 13), %w(21 22 23), %w(31 32 33)]
+    @grid = GRID
   end
 
   def execute game
@@ -27,26 +29,29 @@ class Board
     @grid[row.to_i-1][column.to_i-1] = game.player.name
   end
 
-  def score game
+  def score name, mark # X or O
+    # Check for a draw
+    declare_draw unless available_tiles.any?
+
     # check all three rows
     (0..2).each do |i|
-      name = [@grid[i][0], @grid[i][1], @grid[i][2]].uniq
-      declare_winner(game.player) if name == [game.player.name]
+      declare_winner(name) if 
+        [mark] == [grid[i][0], grid[i][1], grid[i][2]].uniq
     end
 
     # Check all three columns
     (0..2).each do |i|
-      name = [@grid[0][i], @grid[1][i], @grid[2][i]].uniq
-      declare_winner(game.player) if name == [game.player.name]
+      declare_winner(name) if 
+        [mark] == [grid[0][i], grid[1][i], grid[2][i]].uniq
     end
 
     # Check the back-slash diagonal
-    name = [@grid[0][0], @grid[1][1], @grid[2][2]].uniq
-    declare_winner(game.player) if name == [game.player.name]
+    declare_winner(name) if 
+      [mark] == [grid[0][0], grid[1][1], grid[2][2]].uniq
 
     # Check the forward-slash diagonal
-    name = [@grid[0][2], @grid[1][1], @grid[2][0]].uniq
-    declare_winner(game.player) if name == [game.player.name]
+    declare_winner(name) if 
+      [grid[0][2], grid[1][1], grid[2][0]].uniq
   end
 
   def available_tiles
@@ -70,9 +75,15 @@ class Board
     end
   end
 
-  def declare_winner player
+  def declare_winner name
     display
-    puts "#{ player.name } won the game!"
+    puts "#{ name } won the game!"
+    exit
+  end
+
+  def declare_draw
+    display
+    puts "This game is a draw."
     exit
   end
 end

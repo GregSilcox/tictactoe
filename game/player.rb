@@ -1,30 +1,32 @@
 require './game/player_memory'
 
 class Player
-  attr_accessor :id, :name, :password, :game_ids, :authenticated, :game, :record
+  attr_accessor :id, :name, :password, :game_ids, 
+    :authenticated, :game, :memory
 
-  # def initialize game
-  #   @game = game
-  #   @game_ids = []
-
-  #   @record = PlayerMemory.new self
-  #   @authenticated = false
-  #   @id = nil
-  #   @name = ''
-  #   @password = ''
-  # end
-
-  def self.mget player_ids, tictactoe
+  def self.mget player_ids, memory
     player_keys = player_ids.map { |id| "player:#{ id }" }
-    player_json = tictactoe.memory.mget player_keys
+    player_json = memory.mget player_keys
     player_json.map { |j| JSON.parse j }
   end
 
-  def initialize
+  def initialize memory
+    @memory = memory
   end
 
-  def setup
-    @record = PlayerMemory.new self
+  def setup name, password
+    @name = name
+    @password = password
+    PlayerMemory.authenticate memory, self
+    PlayerMemory.load memory, self
+  end
+
+  def get_games
+    Game.mget(game_ids, memory).map do |game_data|
+      g = Game.new self
+      g.parse game_data
+      g
+    end
   end
 
   # data has already been JSON.parse'd so we can use mget.

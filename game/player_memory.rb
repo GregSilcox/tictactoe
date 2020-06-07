@@ -1,16 +1,16 @@
 require 'json'
 
 class PlayerMemory
-  attr_reader :player, :game, :memory
+  attr_reader :player, :memory
 
   # keys player:*
   # keys user:*
-  def self.find id, game
-    player_json = game.memory.get "player:#{ id }"
+  def self.find id, memory
+    player_json = memory.get "player:#{ id }"
     raise RecordNotFound, "player:#{ id } was not found in Redis" if player_json.nil?
 
     player_data = JSON.parse player_json
-    player = Player.new game
+    player = Player.new memory
     player.id = id
     player.name = player_data['name']
     player.game_ids = player_data['games']
@@ -18,18 +18,11 @@ class PlayerMemory
     player
   end
 
-  def initialize player
-    @player = player
-    @game = player.game
-    @memory = game.memory
+  def self.authenticate memory, player
+    player.id = memory.get "user:#{ player.name }:#{ player.password }"
   end
 
-  def authenticate name, password
-    player.id = memory.get "user:#{ name }:#{ password }"
-  end
-
-  def load id
-    player.id = id
+  def self.load memory, player
     player_data = JSON.parse memory.get "player:#{ player.id }"
     player.name = player_data['name']
     player.game_ids = player_data['games']
