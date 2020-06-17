@@ -3,33 +3,24 @@ class Board
 
   GRID = [%w(11 12 13), %w(21 22 23), %w(31 32 33)].freeze
   
-  class << self
-    def setup commands, offset
-      board = Board.new
-      board.update_grid commands, offset
-      board.display
-      board
-    end
-
-    def update game
-      game.board.execute game
-      game.board.score game
-      game.board.display
-    end
+  def self.setup commands, offset
+    board = Board.new
+    board.update_grid commands, offset
+    puts commands.map(&:command).join ', '
+    board.display
+    board
   end
 
   def initialize
     @grid = GRID
   end
 
-  # def execute game
-  def execute command, mark
-    @grid[command.row][command.column] = mark
-  end
-
   def score name, mark # XX or OO
     # Check for a draw
-    declare_draw unless available_tiles.any?
+    unless available_tiles.any?
+      declare_draw
+      return "This game is a draw."
+    end
 
     # check all three rows
     (0..2).each do |i|
@@ -99,6 +90,5 @@ class Board
   def declare_draw
     display
     puts "This game is a draw."
-    exit
   end
 end

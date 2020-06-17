@@ -107,6 +107,7 @@ class TicTacToe
     # Setup the board
     puts "play_game: #{ game.id }"
     cmds = game.commands.map { |c| Command.new c }
+    game.show
     offset = game.offset player.id
     board = Board.setup cmds, offset
 
@@ -120,6 +121,8 @@ class TicTacToe
     game.show
 
     # Score the board
+    cmds = game.commands.map { |c| Command.new c }
+    board.update_grid cmds, offset
     message = board.score player.name, game.mark(player.id)
     puts "board scoring message: #{ message }"
 
