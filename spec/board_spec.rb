@@ -27,4 +27,19 @@ RSpec.describe Board do
     before { subject.update_grid commands }
     it { expect( subject.grid ).to eq grid }
   end
+
+  describe "#score" do
+    context "won horizontally" do
+      let(:msg) { "test-1 won the game! row 1"}
+      let(:mark) { 'XX' }
+
+      before do
+        subject.execute '11', mark
+        subject.execute '12', mark
+        subject.execute '13', mark
+      end
+      
+      it { expect( subject.score 'test-1', mark ).to eq msg }
+    end
+  end
 end

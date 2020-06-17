@@ -23,7 +23,7 @@ class Player
 
   def get_games
     Game.mget(game_ids, memory).map do |game_data|
-      g = Game.new self
+      g = Game.new memory
       g.parse game_data
       g
     end

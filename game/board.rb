@@ -22,36 +22,48 @@ class Board
     @grid = GRID
   end
 
-  def execute game
-    return unless game.command.length > 0
-
-    (row, column) = game.command.split ''
-    @grid[row.to_i-1][column.to_i-1] = game.player.name
+  # def execute game
+  def execute command, mark
+    @grid[command.row][command.column] = mark
   end
 
-  def score name, mark # X or O
+  def score name, mark # XX or OO
     # Check for a draw
     declare_draw unless available_tiles.any?
 
     # check all three rows
     (0..2).each do |i|
-      declare_winner(name) if 
-        [mark] == [grid[i][0], grid[i][1], grid[i][2]].uniq
+      if [mark] == [grid[i][0], grid[i][1], grid[i][2]].uniq
+        msg = message name, "row #{ i + 1 }"
+        declare_winner msg
+        return msg
+      end
     end
 
     # Check all three columns
     (0..2).each do |i|
-      declare_winner(name) if 
-        [mark] == [grid[0][i], grid[1][i], grid[2][i]].uniq
+      if [mark] == [grid[0][i], grid[1][i], grid[2][i]].uniq
+        msg = message name, "column #{ i + 1 }"
+        declare_winner msg
+        return msg
+      end
     end
 
     # Check the back-slash diagonal
-    declare_winner(name) if 
-      [mark] == [grid[0][0], grid[1][1], grid[2][2]].uniq
+    if [mark] == [grid[0][0], grid[1][1], grid[2][2]].uniq
+      msg = message name, "back-slash diagonal"
+      declare_winner msg
+      return msg
+    end
 
     # Check the forward-slash diagonal
-    declare_winner(name) if 
-      [grid[0][2], grid[1][1], grid[2][0]].uniq
+    if [mark] == [grid[0][2], grid[1][1], grid[2][0]].uniq
+      msg = message name, "forward-slash diagonal"
+      declare_winner msg
+      return msg    
+    end
+
+    return "no winner or draw yet."
   end
 
   def available_tiles
@@ -75,10 +87,13 @@ class Board
     end
   end
 
-  def declare_winner name
+  def message name, direction
+    "#{ name } won the game! #{ direction }"
+  end
+
+  def declare_winner msg
     display
-    puts "#{ name } won the game!"
-    exit
+    puts msg
   end
 
   def declare_draw

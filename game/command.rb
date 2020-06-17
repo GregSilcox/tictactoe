@@ -10,6 +10,10 @@ class Command
     _parse if _valid?
   end
 
+  def cancel?
+    command == '0'
+  end
+
   private
 
   def _valid?

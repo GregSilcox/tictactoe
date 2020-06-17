@@ -1,7 +1,7 @@
 require 'json'
 
 class GameMemory
-  attr_reader :player, :game, :memory
+  attr_reader :game, :memory
 
   def initialize game, memory
     @game = game

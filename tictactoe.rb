@@ -36,12 +36,16 @@ class TicTacToe
     command = ''
 
     loop do
-      puts "Enter a tile number"
+      puts "Enter a tile number or 0 to cancel: "
       entry = $stdin.gets.strip
       command = Command.new entry
+
+      break if command.cancel?
+      
       break if
         command.valid && 
         board.available_tiles.include?(command.command)
+
       puts command.error
     end
 
@@ -67,6 +71,9 @@ class TicTacToe
     players_games = playable_games.select { |game| game.playable? player.id }
     opponents_games = playable_games - players_games
 
+    puts "Completed games"
+    list_games games, completed_games
+
     puts "Opponent's turn"
     list_games games, opponents_games
 
@@ -79,6 +86,7 @@ class TicTacToe
     choice = player.choose /\d+|N|E/i
 
     play_game games[choice.to_i] if choice =~ /\d+/
+    # Need to ensure choice is from 'Your Turn'
     new_game if choice =~ /N/i
     exit if choice =~ /E/i
   end
@@ -103,20 +111,19 @@ class TicTacToe
     board = Board.setup cmds, offset
 
     # Get the command
-    game.commands << get_command(board).command
+    command = get_command board
+    return if command.cancel?
+    game.commands << command.command
 
     # Update the board
     puts "show game: "
     game.show
 
     # Score the board
-    board.score player.name, game.mark
+    message = board.score player.name, game.mark(player.id)
+    puts "board scoring message: #{ message }"
 
     # Save the game
     game.save
   end
 end
-
-ttt = TicTacToe.new
-ttt.setup
-loop { ttt.games_menu }

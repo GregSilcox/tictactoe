@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require './tictactoe'
+
+ttt = TicTacToe.new
+ttt.setup
+loop { ttt.games_menu }
